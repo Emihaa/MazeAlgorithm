@@ -36,6 +36,7 @@ if (sq_width != sq_height):
 
 screen = pygame.display.set_mode([screen_width, screen_height])
 
+# initialize squares
 class Square:
     def __init__(self, pos, wall, room, color):
         self.pos = pos
@@ -46,6 +47,7 @@ class Square:
 
 squares = []
 
+# calculate the initial maze
 x = border/2
 for i in range(rows):
     y = border/2
@@ -64,6 +66,7 @@ for i in range(rows):
         y += space + sq_width
     x += space + sq_width
 
+# the actual game loop
 running = True
 while running:
     for event in pygame.event.get():
