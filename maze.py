@@ -1,5 +1,7 @@
 import pygame
 
+# py -3.11 maze.py to run the script
+
 pygame.init()
 
 screen_width    = 500
@@ -48,13 +50,16 @@ x = border/2
 for i in range(rows):
     y = border/2
     for j in range(columns):
+        color = sq_color1
         wall = False
         room = False
         if j == 0 or j == columns - 1 or i == 0 or i == rows - 1:
             wall = True
+            color = sq_color3
         if (wall != True and j % 2 != 0 and i % 2 != 0):
             room = True
-        sq = Square((x,y), wall, room, sq_color1)
+            color = sq_color2
+        sq = Square((x,y), wall, room, color)
         squares.append(sq)
         y += space + sq_width
     x += space + sq_width
@@ -68,10 +73,6 @@ while running:
     screen.fill(bg_color)
     for sq in squares:
         x,y = sq.pos
-        if sq.room is True:
-            sq.color = sq_color2
-        if sq.wall is True:
-            sq.color = sq_color3
         pygame.draw.rect(screen, sq.color, [x, y, sq.width, sq.width])
 
     pygame.display.flip()
