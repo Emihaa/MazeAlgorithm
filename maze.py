@@ -1,17 +1,18 @@
 import pygame
 import random
+import time
 
 # py -3.11 maze.py to run the script
 
 # todo:
 # - change screen resolution
-# - exit from Q
 # - many other
 
 pygame.init()
 
 screen_width    = 500
 screen_height   = 500
+seed            = 9
 
 # Maze info
 rows        = 20
@@ -40,7 +41,7 @@ if (sq_width != sq_height):
         else :
             sq_height = sq_width
 
-screen = pygame.display.set_mode([screen_width, screen_height])
+screen  = pygame.display.set_mode([screen_width, screen_height])
 
 # initialize squares
 class Square: #instead of index could be point
@@ -83,8 +84,9 @@ def FloodFillRoom(x, y, list):
     sq = squares[x][y]
     if sq._room == True:
         FloodFill(sq, list)
+    return list
 
-
+# do FloodFill from the given square
 def FloodFill(square, list):
     if square in list:
         return list
@@ -110,6 +112,8 @@ def FloodFill(square, list):
     
     return list
 
+random.seed(seed)
+grid = random.sample(range(0, rows * columns), rows * columns)
 
 # the actual game loop
 running = True
@@ -136,63 +140,52 @@ while running:
 
     if paused == False:
         # randomly pick a square
-        row = random.choice(squares)
-        sq = random.choice(row)
-        if sq._wall == False and sq._room == False:
-            rooms = 0
-            (x, y) = sq._spot
+        for i in range(len(grid)):
+            index = grid[i]
+            y = (int)(index / columns)
+            x = index - (y * rows)
+            sq = squares[x][y]
 
-            # above
-            listA = []
-            if y > 0:
-                new_sq = squares[x][y - 1]
-                if new_sq._room == True:
-                    listA = FloodFill(new_sq, listA)
+            if sq._wall == False and sq._room == False:
+                rooms = 0
 
-            if listA: # check if there is content inside the list
-                rooms += 1
+                # above
+                listA = []
+                if y > 0:
+                    listA = FloodFillRoom(x, y - 1, listA)
 
-            # below
-            listB = []
-            if y < columns - 1:
-                new_sq = squares[x][y + 1]
-                if new_sq._room == True:
-                    listB = FloodFill(new_sq, listB)
-            
-            # then we check if the list is empthy and if it shares same elements with listA
-            if listB and not (set(listA) & set(listB)):
-                rooms += 1
+                if listA: # check if there is content inside the list
+                    rooms += 1
 
-            # right
-            listC = []
-            if x < rows - 1:
-                new_sq = squares[x + 1][y]
-                if new_sq._room == True:
-                    listC = FloodFill(new_sq, listC)
-            
-            if listC and not (set(listA) & set(listC)) and not (set(listB) & set(listC)):
-                rooms += 1
+                # below
+                listB = []
+                if y < columns - 1:
+                    listB = FloodFillRoom(x, y + 1, listB)
+                
+                # then we check if the list is empthy and if it shares same elements with listA
+                if listB and not (set(listA) & set(listB)):
+                    rooms += 1
 
-            # left
-            listD = []
-            if x > 0:
-                new_sq = squares[x - 1][y]
-                if new_sq._room == True:
-                    listD = FloodFill(new_sq, listD)
+                # right
+                listC = []
+                if x < rows - 1:
+                    listC = FloodFillRoom(x + 1, y, listC)
+                
+                if listC and not (set(listA) & set(listC)) and not (set(listB) & set(listC)):
+                    rooms += 1
 
-            if listD and not (set(listA) & set(listD)) and not (set(listB) & set(listD)) and not (set(listC) & set(listD)):
-                rooms += 1
+                # left
+                listD = []
+                if x > 0:
+                    listD = FloodFillRoom(x - 1, y, listD)
 
-            if rooms == 2:
-                sq._color = sq_color2
-                sq._room = True
-            
-            # if check if removing the square will combine two rooms together
-            # if so remove the square
-            # if no  rooms are combinet together or more than 2 are combined
-            # then dont remove the room
-            
+                if listD and not (set(listA) & set(listD)) and not (set(listB) & set(listD)) and not (set(listC) & set(listD)):
+                    rooms += 1
 
+                if rooms == 2:
+                    sq._color = sq_color2
+                    sq._room = True
+        pause = True
 
     pygame.display.flip()
 
