@@ -2,11 +2,12 @@ import pygame
 import random
 import time
 
-# py -3.11 maze.py to run the script
+# "py -3.11 maze.py" to run the script
 
 # todo:
 # - change screen resolution
-# - many other
+# - clean up the code, maybe like atleast two files
+# create a maze class and add all the globals there maybe instead?
 
 pygame.init()
 
@@ -20,7 +21,7 @@ delay_time      = 50
 rows        = 20
 columns     = 20
 space       = 2
-border      = 10
+margin      = 10
 sq_color1   = [155,70,100]
 sq_color2   = [240,240,240]
 sq_color3   = [200,200,200]
@@ -33,8 +34,8 @@ if columns % 2 == 0:
     columns += 1
 
 # calculate the width of sq_width and sq_height
-sq_width    = ((screen_width - border/2) / rows) - space
-sq_height   = ((screen_height - border/2) / columns) - space
+sq_width    = ((screen_width - margin/2) / rows) - space
+sq_height   = ((screen_height - margin/2) / columns) - space
 
 # if the sq_width and sq_heights are different values, then take the smaller one
 if (sq_width != sq_height):
@@ -47,9 +48,9 @@ screen  = pygame.display.set_mode([screen_width, screen_height])
 
 # initialize squares
 class Square: #instead of index could be point
-    def __init__(self, pos, wall, room, color, spot):
+    def __init__(self, pos, border, room, color, spot):
         self._pos = pos
-        self._wall = wall
+        self._border = border
         self._room = room
         self._color = color
         self._width = sq_width
@@ -64,24 +65,24 @@ def GenerateSeed():
 def GenerateMaze():
 
     squares = []
-    x = border/2
-    for i in range(rows):
-        row = []
-        y = border/2
-        for j in range(columns):
+    x = margin/2 # x position 
+    for i in range(columns):
+        column = []
+        y = margin/2 # y position
+        for j in range(rows):
             color = sq_color1
-            wall = False
+            border = False
             room = False
-            if j == 0 or j == columns - 1 or i == 0 or i == rows - 1:
-                wall = True
+            if j == 0 or j == columns - 1 or i == 0 or i == rows - 1: # if first or last then it is border
+                border = True
                 color = sq_color3
-            if (wall != True and j % 2 != 0 and i % 2 != 0):
+            if (border != True and j % 2 != 0 and i % 2 != 0): # if it is odd then it is a room
                 room = True
                 color = sq_color2
-            sq = Square((x,y), wall, room, color, [i,j])
-            row.append(sq)
+            sq = Square((x,y), border, room, color, [i,j])
+            column.append(sq)
             y += space + sq_width
-        squares.append(row)
+        squares.append(column)
         x += space + sq_width
     return squares
 
@@ -105,15 +106,12 @@ def FloodFill(square, list):
     # above
     if y > 0:
         FloodFillRoom(x, y - 1, list)
-
     # below
     if y < columns - 1:
         FloodFillRoom(x, y + 1, list)
-
     # right
     if x < rows - 1:
         FloodFillRoom(x + 1, y, list)
-
     # left
     if x > 0:
         FloodFillRoom(x - 1, y, list)
@@ -123,7 +121,7 @@ def FloodFill(square, list):
 
 def BuildMaze(sq):
     (x, y) = sq._spot
-    if sq._wall == False and sq._room == False:
+    if sq._border == False and sq._room == False:
         rooms = 0
 
         # above
