@@ -18,7 +18,7 @@ seed_i          = 0
 delay_time      = 50
 
 # Maze info
-rows        = 20
+rows        = 10
 columns     = 20
 space       = 2
 margin      = 10
@@ -65,24 +65,24 @@ def GenerateSeed():
 def GenerateMaze():
 
     squares = []
-    x = margin/2 # x position 
-    for i in range(columns):
-        column = []
-        y = margin/2 # y position
-        for j in range(rows):
+    x = margin/2
+    for i in range(rows):
+        row = []
+        y = margin/2
+        for j in range(columns):
             color = sq_color1
-            border = False
+            wall = False
             room = False
             if j == 0 or j == columns - 1 or i == 0 or i == rows - 1: # if first or last then it is border
-                border = True
+                wall = True
                 color = sq_color3
-            if (border != True and j % 2 != 0 and i % 2 != 0): # if it is odd then it is a room
+            if (wall != True and j % 2 != 0 and i % 2 != 0): # if it is odd then it is a room
                 room = True
                 color = sq_color2
-            sq = Square((x,y), border, room, color, [i,j])
-            column.append(sq)
+            sq = Square((x,y), wall, room, color, [i,j])
+            row.append(sq)
             y += space + sq_width
-        squares.append(column)
+        squares.append(row)
         x += space + sq_width
     return squares
 
@@ -161,15 +161,14 @@ def BuildMaze(sq):
             sq._color = sq_color2
             sq._room = True
 
-
 # get square from the seed
 def PickSquare(i):
     index = grid[i]
-    y = (int)(index / columns)
+    #y = (int)math.floor(index / columns)
+    y = (int)(index / rows)
     x = index - (y * rows)
     sq = squares[x][y]
     return sq
-
 
 # the actual game loop
 running = True
