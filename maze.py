@@ -1,6 +1,7 @@
 import pygame
 import random
 import time
+import queue
 
 # "py -3.11 maze.py" to run the script
 
@@ -15,12 +16,12 @@ screen_width    = 500
 screen_height   = 500
 seed            = 9
 seed_i          = 0
-delay_time      = 50
+delay_time      = 5
 
 # Maze info
-rows        = 10
+rows        = 20
 columns     = 20
-space       = 2
+space       = 1
 margin      = 10
 sq_color1   = [155,70,100]
 sq_color2   = [240,240,240]
@@ -170,6 +171,68 @@ def PickSquare(i):
     sq = squares[x][y]
     return sq
 
+# we need x and y positions for the start and exit
+def PickStart():
+    y = random.randint(1, rows - 2)
+
+    # TODO: check is place is available (if there is room next to it)
+    # if not then find place again
+    start = squares[0][y]
+    start._color = [0,0,0]
+    return start
+
+# we need x and y positions for the start and exit
+def PickExit():
+    x = random.randint(1, columns - 2)
+
+    # TODO: check is place is available (if there is room next to it)
+    # if not then find place again
+    exit = squares[rows - 1][x]
+    exit._color = [0,255,0]
+    return exit
+
+
+def FindPath(start, exit):
+    frontier = queue.Queue()
+    frontier.put(start)
+    came_from = dict()
+    came_from[start] = None
+
+    while not frontier.empty():
+        current = frontier.get()
+        (x,y) = current._spot
+
+        if current == exit:
+            path = []
+            while current is not None:
+                path.append(current)
+                current = came_from[current]
+            print("found path")
+            path.reverse()
+            return path
+        
+        neighbours = []
+        #up, down, right, left
+        if y > 0:
+            if squares[x][y - 1]._room is True or squares[x][y - 1] is exit:
+                neighbours.append(squares[x][y - 1])
+        if x > 0:
+            if squares[x - 1][y]._room is True or squares[x - 1][y] is exit:
+                neighbours.append(squares[x - 1][y])
+        if y < columns - 1:
+            if squares[x][y + 1]._room is True or squares[x][y + 1] is exit:
+                neighbours.append(squares[x][y + 1])
+        if x < rows - 1:
+            if squares[x + 1][y]._room is True or squares[x + 1][y] is exit:
+                neighbours.append(squares[x + 1][y])
+
+        for next in neighbours:
+            if next not in came_from:
+                frontier.put(next)
+                came_from[next] = current
+    print("no path")
+    return None
+
 # the actual game loop
 running = True
 paused = False
@@ -238,6 +301,13 @@ while running:
                 print("done")
                 pygame.time.set_timer(delay, 0)
                 paused = True
+                start = PickStart()
+                exit = PickExit()
+                path = FindPath(start, exit)
+                if path:
+                    for square in path:
+                        square._color = [50,50,50]
+                # create an opening and exit
 
     screen.fill(bg_color)
     # draw the squares
